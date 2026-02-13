@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "WBS 문서"
+    url: "https://github.com/your-repo/blob/main/docs/wbs.md"
+    about: "전체 태스크 목록과 마일스톤은 WBS 문서를 참고하세요"
