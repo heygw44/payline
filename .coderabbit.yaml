@@ -1,0 +1,87 @@
+language: "ko-KR"
+tone_instructions: "간결하고 실용적인 톤. PayLine 프로젝트 컨벤션에 맞춰 리뷰."
+early_access: false
+enable_free_tier: true
+
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  high_level_summary_placeholder: "@coderabbitai summary"
+  review_status: true
+  commit_status: true
+  collapse_walkthrough: true
+  changed_files_summary: true
+  sequence_diagrams: true
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+  poem: false
+
+  path_filters:
+    - "!docs/**"
+    - "!.claude/**"
+    - "!.github/**"
+    - "!*.md"
+    - "!gradlew"
+    - "!gradlew.bat"
+    - "!gradle/wrapper/**"
+
+  path_instructions:
+    - path: "src/main/java/**/*.java"
+      instructions: |
+        Java 21 + Spring Boot 4.0.2 프로젝트입니다.
+        - DTO는 record 클래스를 사용합니다. setter가 있는 가변 DTO는 금지합니다.
+        - 금액 필드는 반드시 BigDecimal을 사용합니다. double/float 금지.
+        - BigDecimal 비교는 compareTo를 사용합니다. equals 금지.
+        - BigDecimal 생성은 문자열 생성자를 사용합니다. new BigDecimal(double) 금지.
+        - 예외는 BusinessException + ErrorCode 패턴을 사용합니다. RuntimeException 직접 throw 금지.
+        - Service 클래스는 @Transactional(readOnly = true) 기본, 쓰기 메서드에만 @Transactional.
+        - Controller는 비즈니스 로직 금지. ApiResponse 래핑만 담당합니다.
+        - 삭제는 Soft Delete (deletedAt 필드) 패턴을 사용합니다.
+    - path: "src/main/resources/mapper/**/*.xml"
+      instructions: |
+        MyBatis Mapper XML 파일입니다.
+        - 파라미터 바인딩은 반드시 #{} 를 사용합니다.
+        - ${} 사용은 SQL Injection 위험이므로 금지합니다. ORDER BY 동적 컬럼 등 불가피한 경우 Service에서 화이트리스트 검증이 필수입니다.
+        - 동적 SQL은 <if>, <where>, <foreach> 태그를 사용합니다.
+        - 집계 쿼리에서 NULL 방지를 위해 COALESCE를 사용합니다.
+    - path: "src/test/java/**/*.java"
+      instructions: |
+        테스트 코드입니다.
+        - BigDecimal 비교는 isEqualByComparingTo를 사용합니다. isEqualTo 금지.
+        - 예외 검증은 assertThatThrownBy + hasFieldOrPropertyWithValue("errorCode", ...) 패턴.
+        - 테스트 간 의존성 금지. 각 테스트는 독립적으로 실행 가능해야 합니다.
+        - Mock은 @MockitoBean (통합) 또는 @Mock (단위)를 사용합니다.
+    - path: "frontend/src/**/*.vue"
+      instructions: |
+        Vue 3 Composition API 프로젝트입니다.
+        - <script setup lang="ts"> 필수.
+        - Props는 defineProps<T>() + withDefaults 패턴.
+        - 상태 관리는 Pinia를 사용합니다.
+        - API 호출 시 CSRF 토큰 인터셉터가 설정된 Axios 인스턴스를 사용합니다.
+    - path: "frontend/src/**/*.ts"
+      instructions: |
+        TypeScript 파일입니다.
+        - API 응답은 ApiResponse<T> 타입으로 래핑합니다.
+        - 정산 상태는 SettleStatus 타입을 사용합니다.
+
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    ignore_title_keywords:
+      - "WIP"
+      - "DO NOT MERGE"
+    drafts: false
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  opt_out: false
+  learnings:
+    scope: "auto"
+  issues:
+    scope: "auto"
+  pull_requests:
+    scope: "auto"
