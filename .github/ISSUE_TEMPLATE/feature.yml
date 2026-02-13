@@ -1,0 +1,102 @@
+name: "기능 구현"
+description: "새로운 기능을 구현합니다"
+labels: ["feat"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 기능 구현 Issue
+        PRD v3.0 / 아키텍처 설계서 v1.0 기반으로 작성합니다.
+
+  - type: input
+    id: task-id
+    attributes:
+      label: "WBS Task ID"
+      description: "WBS 문서의 태스크 번호 (예: W1-06, W3-08)"
+      placeholder: "W1-01"
+    validations:
+      required: false
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: "개요"
+      description: "구현할 기능을 한 줄로 설명"
+      placeholder: "ErrorCode Enum + BusinessException 계층 + GlobalExceptionHandler 구현"
+    validations:
+      required: true
+
+  - type: textarea
+    id: requirements
+    attributes:
+      label: "상세 요구사항"
+      description: "PRD/아키텍처 설계서의 관련 섹션 참조"
+      value: |
+        - [ ] 요구사항 1
+        - [ ] 요구사항 2
+        - [ ] 요구사항 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: "구현 범위"
+      description: "변경/생성할 계층별 클래스"
+      value: |
+        - **Entity/Domain:**
+        - **DTO (record):**
+        - **Repository/Mapper:**
+        - **Service:**
+        - **Controller:**
+    validations:
+      required: true
+
+  - type: textarea
+    id: dod
+    attributes:
+      label: "완료 기준 (DoD)"
+      description: "이 Issue가 완료되었다고 판단하는 기준"
+      value: |
+        - [ ] 기능 구현 완료
+        - [ ] `./gradlew compileJava` 성공
+        - [ ] 기존 테스트 통과 (`./gradlew test`)
+        - [ ] Swagger에서 API 동작 확인
+    validations:
+      required: true
+
+  - type: dropdown
+    id: domain
+    attributes:
+      label: "도메인"
+      options:
+        - member (회원/인증)
+        - owner (업주)
+        - order (주문)
+        - reward (보상금)
+        - settle (지급)
+        - frontend (Vue)
+        - global (공통)
+    validations:
+      required: true
+
+  - type: input
+    id: branch
+    attributes:
+      label: "브랜치명"
+      description: "feat/xxx 형식"
+      placeholder: "feat/settle-service"
+    validations:
+      required: false
+
+  - type: textarea
+    id: related
+    attributes:
+      label: "관련 문서/Issue"
+      description: "PRD 섹션, 아키텍처 섹션, 관련 Issue 번호"
+      placeholder: |
+        - PRD: 섹션 4.5
+        - 아키텍처: 섹션 3.2
+        - 관련 Issue: #
+    validations:
+      required: false

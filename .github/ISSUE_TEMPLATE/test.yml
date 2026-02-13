@@ -1,0 +1,92 @@
+name: "테스트 작성"
+description: "테스트 코드를 작성합니다"
+labels: ["test"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 테스트 작성 Issue
+        JUnit Jupiter + Mockito + MockMvc + JaCoCo 기반. 커버리지 80%+ 목표.
+
+  - type: input
+    id: task-id
+    attributes:
+      label: "WBS Task ID"
+      placeholder: "W5-05"
+    validations:
+      required: false
+
+  - type: input
+    id: target-class
+    attributes:
+      label: "테스트 대상 클래스"
+      placeholder: "SettleService, SettlementCalculator"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: test-type
+    attributes:
+      label: "테스트 유형"
+      options:
+        - "단위 테스트 (JUnit + Mockito)"
+        - "통합 테스트 (MockMvc + Spring Boot Test)"
+        - "리포지토리 테스트 (@DataJpaTest + H2)"
+        - "보안 테스트 (인증/인가/CSRF)"
+        - "E2E 테스트 (Playwright)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: test-cases
+    attributes:
+      label: "테스트 케이스"
+      description: "작성할 테스트 케이스 목록"
+      value: |
+        - [ ] TC-01:
+        - [ ] TC-02:
+        - [ ] TC-03:
+    validations:
+      required: true
+
+  - type: textarea
+    id: dod
+    attributes:
+      label: "완료 기준"
+      value: |
+        - [ ] 모든 테스트 케이스 통과
+        - [ ] `./gradlew test` 전체 통과
+        - [ ] BigDecimal 비교는 `isEqualByComparingTo` 사용
+        - [ ] 커버리지 기준 충족 (80%+ / 100% for critical)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: domain
+    attributes:
+      label: "도메인"
+      options:
+        - member (회원/인증)
+        - owner (업주)
+        - order (주문)
+        - reward (보상금)
+        - settle (지급)
+        - auth (보안/인가)
+    validations:
+      required: true
+
+  - type: input
+    id: branch
+    attributes:
+      label: "브랜치명"
+      placeholder: "test/settle"
+    validations:
+      required: false
+
+  - type: textarea
+    id: related
+    attributes:
+      label: "관련 Issue"
+      placeholder: "관련 기능 Issue: #"
+    validations:
+      required: false
