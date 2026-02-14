@@ -32,8 +32,8 @@ class ErrorCodeTest {
     }
 
     @Test
-    @DisplayName("ErrorCode는 20개가 정의되어 있다")
-    void shouldHave20ErrorCodes() {
-        assertThat(ErrorCode.values()).hasSize(20);
+    @DisplayName("ErrorCode는 25개가 정의되어 있다")
+    void shouldHave25ErrorCodes() {
+        assertThat(ErrorCode.values()).hasSize(25);
     }
 }

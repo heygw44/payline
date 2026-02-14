@@ -20,6 +20,11 @@ public enum ErrorCode {
     MEMBER_NOT_FOUND("M001", "존재하지 않는 회원입니다.", 404),
     DUPLICATE_EMAIL("M002", "이미 사용 중인 이메일입니다.", 409),
     LAST_ADMIN("M003", "최소 1명의 관리자가 존재해야 합니다.", 400),
+    MEMBER_FIELD_REQUIRED("M004", "필수 항목이 누락되었습니다.", 400),
+    MEMBER_FIELD_LENGTH_EXCEEDED("M005", "입력값 길이가 초과되었습니다.", 400),
+    MEMBER_EMAIL_INVALID_FORMAT("M006", "이메일 형식이 올바르지 않습니다.", 400),
+    MEMBER_ROLE_REQUIRED("M007", "역할은 필수입니다.", 400),
+    MEMBER_DELETED("M008", "삭제된 회원은 수정할 수 없습니다.", 400),
 
     // 업주
     OWNER_NOT_FOUND("O001", "존재하지 않는 업주입니다.", 404),
