@@ -2,7 +2,7 @@
 
 ### 우아한형제들 정산시스템 클론 코딩 — 시스템 아키텍처
 
-> _PRD v3.0 기반 기술 아키텍처 상세 설계_
+> _PRD v3.0.1 기반 기술 아키텍처 상세 설계_
 
 ---
 
@@ -10,9 +10,9 @@
 |------|------|
 | **프로젝트명** | 페이라인 (PayLine) |
 | **문서 유형** | 시스템 아키텍처 설계서 |
-| **문서 버전** | v1.0 |
-| **최종 수정일** | 2026년 2월 12일 |
-| **기반 문서** | PRD v3.0 |
+| **문서 버전** | v1.2 |
+| **최종 수정일** | 2026년 2월 14일 |
+| **기반 문서** | PRD v3.0.1 |
 | **기술 스택** | Java 21 + Spring Boot 4.0.2 + Vue 3 + MySQL 9.x |
 
 ---
@@ -165,7 +165,7 @@
 
 ### 1.4 기술 스택 버전 요약
 
-본 설계서에서 사용하는 기술 스택의 정확한 버전입니다 (PRD v3.0 기준).
+본 설계서에서 사용하는 기술 스택의 정확한 버전입니다 (PRD v3.0.1 기준).
 
 | 구분 | 기술 | 버전 |
 |------|------|------|
@@ -1090,11 +1090,29 @@ public record ApiResponse<T>(
     String message,
     String errorCode
 ) {
+    public ApiResponse {
+        if (success) {
+            if (message != null || errorCode != null) {
+                throw new IllegalArgumentException("Success response must not contain message or errorCode");
+            }
+        } else {
+            if (data != null) {
+                throw new IllegalArgumentException("Error response must not contain data");
+            }
+            if (message == null || message.isBlank()) {
+                throw new IllegalArgumentException("Error response must contain message");
+            }
+            if (errorCode == null || errorCode.isBlank()) {
+                throw new IllegalArgumentException("Error response must contain errorCode");
+            }
+        }
+    }
+
     public static <T> ApiResponse<T> success(T data) {
         return new ApiResponse<>(true, data, null, null);
     }
 
-    public static ApiResponse<?> error(String message, String errorCode) {
+    public static <T> ApiResponse<T> error(String message, String errorCode) {
         return new ApiResponse<>(false, null, message, errorCode);
     }
 }
@@ -1651,3 +1669,5 @@ src/main/resources/db/migration/
 > | 버전 | 날짜 | 변경 내용 |
 > |------|------|-----------|
 > | v1.0 | 2026-02-12 | 최초 작성. PRD v3.0 기반 전체 아키텍처 설계 |
+> | v1.1 | 2026-02-14 | ApiResponse 스니펫을 실제 구현(불변식 검증, 제네릭 error 팩토리) 기준으로 정합화 |
+> | v1.2 | 2026-02-14 | 문서 메타데이터(버전/최종 수정일)와 이력 정합성 보정 |
