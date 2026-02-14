@@ -73,7 +73,7 @@ M1 (Week 1)    M2 (Week 2)    M3 (Week 3)    M4 (Week 4)    M5 (Week 5)    M6 (W
 | W1-09 | SecurityConfig 작성 (세션, CSRF, 인가 규칙, 핸들러) | 3h | `feat` | `feat/auth-session` |
 | W1-10 | CustomUserDetailsService + CustomUserDetails 구현 | 1.5h | `feat` | `feat/auth-session` |
 | W1-11 | LoginSuccessHandler, LoginFailureHandler (JSON 응답) 구현 | 1.5h | `feat` | `feat/auth-session` |
-| W1-12 | AuditorAwareImpl (세션에서 사용자 추출) 구현 | 0.5h | `feat` | `feat/auth-session` |
+| W1-12 | JpaAuditingConfig의 AuditorAware Bean 구성 (세션에서 사용자 추출) | 0.5h | `feat` | `feat/auth-session` |
 
 ### Day 5: 회원 관리
 

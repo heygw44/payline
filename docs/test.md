@@ -39,7 +39,7 @@
 
 | 유형 | 도구 | 대상 | 비중 | 목표 |
 |------|------|------|------|------|
-| **단위 테스트** | JUnit 5 + Mockito | Service, Domain, Calculator | 60% (52건) | 비즈니스 로직 정확성 |
+| **단위 테스트** | JUnit Jupiter 6 + Mockito | Service, Domain, Calculator | 60% (52건) | 비즈니스 로직 정확성 |
 | **통합 테스트** | Spring Boot Test + MockMvc | Controller + Security + DB | 29% (25건) | API 동작 + 인증/인가 |
 | **보안 테스트** | Spring Security Test | CSRF, 세션, 권한 | 11% (10건) | 보안 요구사항 충족 |
 
@@ -448,11 +448,11 @@ Order#5: totalAmount = 33,333.33
 # 특정 도메인 테스트만 실행
 ./gradlew test --tests "com.payline.settle.*"
 
-# 단위 테스트만 실행 (태그 기반)
-./gradlew test -Dgroups="unit"
+# 단위 테스트 클래스 패턴 실행
+./gradlew test --tests "*ServiceTest" --tests "*CalculatorTest" --tests "*StatusTest"
 
-# 통합 테스트만 실행
-./gradlew test -Dgroups="integration"
+# 통합/보안 테스트 클래스 패턴 실행
+./gradlew test --tests "*IntegrationTest" --tests "*SecurityTest"
 
 # 커버리지 리포트 생성
 ./gradlew test jacocoTestReport
