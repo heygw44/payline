@@ -121,9 +121,9 @@
 |  |  +---------------------+  |    |  +----------------------+  |  |
 |  |  |  Vue 3 SPA          |  |    |  |  Spring Boot 4.0.2   |  |  |
 |  |  |  - Composition API  |  |    |  |  - Java 21           |  |  |
-|  |  |  - Pinia Store      | -------> |  - Spring Security 7.0|  |  |
+|  |  |  - Pinia Store      | -------> |  - Spring Security 7.0.2| |  |
 |  |  |  - Vue Router       |  | API|  |  - Spring MVC        |  |  |
-|  |  |  - Axios Client     |  |    |  |  - JPA (Hibernate 7.2)|  |  |
+|  |  |  - Axios Client     |  |    |  |  - JPA (Hibernate 7.2.1)| |  |
 |  |  |                     |  |    |  |  - MyBatis 3.5.x     |  |  |
 |  |  +---------------------+  |    |  +----------+-----------+  |  |
 |  |                           |    |             |              |  |
@@ -172,8 +172,8 @@
 | **언어** | Java | 21 (LTS) |
 | **프레임워크** | Spring Boot | 4.0.2 |
 | **코어** | Spring Framework | 7.0.3 |
-| **보안** | Spring Security | 6.5.x |
-| **ORM** | Hibernate | 6.5.x |
+| **보안** | Spring Security | 7.0.2 |
+| **ORM** | Hibernate | 7.2.1 |
 | **SQL 매퍼** | MyBatis | 3.5.x (mybatis-spring-boot-starter 4.x) |
 | **프론트엔드** | Vue 3 (Composition API) | 3.x |
 | **프론트 빌드** | Vite | 6.x |
@@ -252,7 +252,7 @@
 ```
 src/main/java/com/payline/
 |
-+-- PayLineApplication.java                  # Spring Boot 메인
++-- PaylineApplication.java                  # Spring Boot 메인
 |
 +-- global/                                  # ── 전역 공통 ──
 |   +-- config/
@@ -266,9 +266,11 @@ src/main/java/com/payline/
 |   |   +-- dto/
 |   |   |   +-- ApiResponse.java             # 공통 API 응답 래퍼
 |   |   |   +-- PageResponse.java            # 페이징 응답 DTO
-|   |   +-- entity/
-|   |   |   +-- BaseEntity.java              # 공통 Auditing 엔티티
-|   |   |   +-- BaseTimeEntity.java          # 시간 필드만 포함
+|   |   +-- (기타 공통 유틸)
+|   |
+|   +-- entity/
+|   |   +-- BaseEntity.java                  # 공통 Auditing 엔티티
+|   |   +-- BaseTimeEntity.java              # 시간 필드만 포함
 |   |
 |   +-- error/
 |   |   +-- GlobalExceptionHandler.java      # @RestControllerAdvice
@@ -286,7 +288,7 @@ src/main/java/com/payline/
 |       +-- LoginFailureHandler.java         # 인증 실패 핸들러 (JSON)
 |       +-- CustomAccessDeniedHandler.java   # 403 핸들러
 |       +-- CustomAuthenticationEntryPoint.java  # 401 핸들러
-|       +-- AuditorAwareImpl.java            # Auditing 사용자 추출
+|       +-- (AuditorAware는 JpaAuditingConfig Bean으로 제공)
 |
 +-- member/                                  # ── 회원 도메인 ──
 |   +-- controller/
@@ -1471,6 +1473,7 @@ public class JpaAuditingConfig {
         return () -> Optional.ofNullable(SecurityContextHolder.getContext())
             .map(SecurityContext::getAuthentication)
             .filter(Authentication::isAuthenticated)
+            .filter(auth -> !(auth instanceof AnonymousAuthenticationToken))
             .map(Authentication::getName)
             .or(() -> Optional.of("SYSTEM"));
     }
@@ -1529,7 +1532,7 @@ server:
 | deleted | BOOLEAN | NO | false | |
 | created_at | DATETIME(6) | NO | | |
 | updated_at | DATETIME(6) | NO | | |
-| created_by | VARCHAR(100) | YES | | |
+| created_by | VARCHAR(100) | NO | | |
 | updated_by | VARCHAR(100) | YES | | |
 
 #### owner

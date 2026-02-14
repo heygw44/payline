@@ -627,12 +627,12 @@ Week 6   : Phase 3 (선택) + 리팩토링 + README + 포트폴리오 정리
 +-------------------------------------------------------------+
 |                       백엔드 (Server)                        |
 |  +-------------------------------------------------------+  |
-|  |  Java 21  |  Spring Boot 4.0.2  |  Spring Security 7.0|  |
+|  |  Java 21  |  Spring Boot 4.0.2  |  Spring Security 7.0.2|  |
 |  |  세션 기반 인증  |  RBAC 권한 제어  |  Virtual Threads  |  |
 |  +-------------------------------------------------------+  |
 |  |  Service Layer  |  OOP + 클린 코드  |  Bean Validation  |  |
 |  +-------------------------------------------------------+  |
-|  |  JPA (Hibernate 7.2) -- 엔티티 CRUD                    |  |
+|  |  JPA (Hibernate 7.2.1) -- 엔티티 CRUD                  |  |
 |  |  MyBatis 3.5.x -- 복잡한 검색/집계 쿼리                 |  |
 |  +-------------------------------------------------------+  |
 |  |  JUnit Jupiter 6.0.2 + Mockito 5.20 (단위)                      |  |
@@ -656,8 +656,8 @@ Week 6   : Phase 3 (선택) + 리팩토링 + README + 포트폴리오 정리
 |------|------|------|-----------|
 | **언어** | Java | 21 (LTS) | 최신 LTS. Virtual Threads(가상 스레드), Record, Pattern Matching, Sealed Class, Switch Expression 등 모던 Java 기능 전면 활용 |
 | **프레임워크** | Spring Boot | 4.0.2 | 2026년 2월 기준 최신 GA. Spring Framework 7.0.3 기반, Java 21 최적화, Spring Framework 7.0 기반, Jakarta EE 11, 모듈화 아키텍처, Virtual Threads 안정 지원 |
-| **보안** | Spring Security | 6.5.x | Spring Boot 4.0.2 관리 의존성. 세션 관리, CSRF, OAuth 2.1, 강화된 비밀번호 인코더 기본 적용 |
-| **ORM** | JPA (Hibernate) | 7.2.x | Spring Boot 4.0.2 관리 의존성. 엔티티 매핑, 연관관계 관리, JPA Auditing |
+| **보안** | Spring Security | 7.0.2 | Spring Boot 4.0.2 관리 의존성. 세션 관리, CSRF, OAuth 2.1, 강화된 비밀번호 인코더 기본 적용 |
+| **ORM** | JPA (Hibernate) | 7.2.1 | Spring Boot 4.0.2 관리 의존성. 엔티티 매핑, 연관관계 관리, JPA Auditing |
 | **SQL 매퍼** | MyBatis | 3.5.x | mybatis-spring-boot-starter 4.x. 동적 쿼리, 복잡한 JOIN, 집계 쿼리에 최적 |
 | **프론트엔드** | Vue | 3.x (Composition API) | 학습 곡선이 낮고 SPA 구축에 적합. Composition API로 TypeScript 친화적 코드 작성 가능 |
 | **프론트 빌드** | Vite | 6.x | Vue 공식 권장 빌드 도구. HMR(Hot Module Replacement) 초고속, ES Modules 기반 |
@@ -805,7 +805,7 @@ CSRF 처리:
              /--------------------------\
             /   통합 테스트 (MockMvc)      \       <-- API 엔드포인트
            /------------------------------\
-          /      단위 테스트 (JUnit 5)       \     <-- Service 비즈니스 로직
+          /  단위 테스트 (JUnit Jupiter 6)   \     <-- Service 비즈니스 로직
          /----------------------------------\
 ```
 
@@ -836,10 +836,11 @@ CSRF 처리:
 
 ```
 src/main/java/com/payline/
-+-- PayLineApplication.java
++-- PaylineApplication.java
 +-- global/
 |   +-- config/          # SecurityConfig, WebConfig, MyBatisConfig
-|   +-- common/          # ApiResponse, BaseEntity, 페이징 DTO
+|   +-- common/          # ApiResponse, 페이징 DTO
+|   +-- entity/          # BaseEntity, BaseTimeEntity
 |   +-- error/           # 글로벌 예외 핸들러, 커스텀 예외, ErrorCode
 |   +-- auth/            # UserDetailsService, 핸들러
 +-- member/              # controller / service / repository / domain / dto
