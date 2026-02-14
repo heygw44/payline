@@ -1,6 +1,7 @@
 package com.payline.global.common.dto;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -45,5 +46,38 @@ class PageResponseTest {
         PageResponse<String> response = PageResponse.of(List.of(), 0, 0, 0);
 
         assertThat(response.totalPages()).isZero();
+    }
+
+    @Test
+    @DisplayName("page가 음수면 예외가 발생한다")
+    void shouldThrowWhenPageIsNegative() {
+        assertThatThrownBy(() -> PageResponse.of(List.of("a"), -1, 10, 1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("page");
+    }
+
+    @Test
+    @DisplayName("size가 음수면 예외가 발생한다")
+    void shouldThrowWhenSizeIsNegative() {
+        assertThatThrownBy(() -> PageResponse.of(List.of("a"), 0, -1, 1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("size");
+    }
+
+    @Test
+    @DisplayName("size가 0인데 totalElements가 양수면 예외가 발생한다")
+    void shouldThrowWhenSizeIsZeroButTotalElementsIsPositive() {
+        assertThatThrownBy(() -> PageResponse.of(List.of("a"), 0, 0, 1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("totalElements");
+    }
+
+    @Test
+    @DisplayName("content는 외부에서 수정할 수 없다")
+    void shouldReturnImmutableContent() {
+        PageResponse<String> response = PageResponse.of(List.of("a", "b"), 0, 10, 2);
+
+        assertThatThrownBy(() -> response.content().add("c"))
+                .isInstanceOf(UnsupportedOperationException.class);
     }
 }
