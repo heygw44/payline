@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
-    Optional<Member> findByEmailIgnoreCaseAndDeletedFalse(String email);
+    Optional<Member> findByEmailIgnoreCaseAndDeletedAtIsNull(String email);
 
     boolean existsByEmailIgnoreCase(String email);
 
-    long countByRoleAndDeletedFalse(MemberRole role);
+    long countByRoleAndDeletedAtIsNull(MemberRole role);
 }

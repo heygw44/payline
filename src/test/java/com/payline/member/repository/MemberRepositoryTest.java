@@ -36,8 +36,8 @@ class MemberRepositoryTest {
     }
 
     @Nested
-    @DisplayName("findByEmailIgnoreCaseAndDeletedFalse")
-    class FindByEmailIgnoreCaseAndDeletedFalse {
+    @DisplayName("findByEmailIgnoreCaseAndDeletedAtIsNull")
+    class FindByEmailIgnoreCaseAndDeletedAtIsNull {
 
         @Test
         @DisplayName("삭제되지 않은 회원을 이메일로 조회할 수 있다")
@@ -45,7 +45,7 @@ class MemberRepositoryTest {
             Member member = new Member("TeSt@email.com", "encodedPassword", "홍길동", MemberRole.USER);
             memberRepository.save(member);
 
-            Optional<Member> found = memberRepository.findByEmailIgnoreCaseAndDeletedFalse("TEST@email.com");
+            Optional<Member> found = memberRepository.findByEmailIgnoreCaseAndDeletedAtIsNull("TEST@email.com");
 
             assertThat(found).isPresent();
             assertThat(found.get().getEmail()).isEqualTo("test@email.com");
@@ -58,7 +58,7 @@ class MemberRepositoryTest {
             member.softDelete();
             memberRepository.save(member);
 
-            Optional<Member> found = memberRepository.findByEmailIgnoreCaseAndDeletedFalse("test@email.com");
+            Optional<Member> found = memberRepository.findByEmailIgnoreCaseAndDeletedAtIsNull("test@email.com");
 
             assertThat(found).isEmpty();
         }
@@ -95,8 +95,8 @@ class MemberRepositoryTest {
     }
 
     @Nested
-    @DisplayName("countByRoleAndDeletedFalse")
-    class CountByRoleAndDeletedFalse {
+    @DisplayName("countByRoleAndDeletedAtIsNull")
+    class CountByRoleAndDeletedAtIsNull {
 
         @Test
         @DisplayName("활성 ADMIN 수를 정확히 카운트한다")
@@ -109,7 +109,7 @@ class MemberRepositoryTest {
             deletedAdmin.softDelete();
             memberRepository.save(deletedAdmin);
 
-            long count = memberRepository.countByRoleAndDeletedFalse(MemberRole.ADMIN);
+            long count = memberRepository.countByRoleAndDeletedAtIsNull(MemberRole.ADMIN);
 
             assertThat(count).isEqualTo(2);
         }

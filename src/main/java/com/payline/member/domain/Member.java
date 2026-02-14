@@ -1,6 +1,8 @@
 package com.payline.member.domain;
 
 import com.payline.global.entity.BaseEntity;
+import com.payline.global.error.BusinessException;
+import com.payline.global.error.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.regex.Pattern;
 import lombok.AccessLevel;
@@ -44,8 +47,8 @@ public class Member extends BaseEntity {
     @Column(nullable = false, length = 10)
     private MemberRole role;
 
-    @Column(nullable = false)
-    private boolean deleted = false;
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     public Member(String email, String password, String name, MemberRole role) {
         this.email = normalizeAndValidateEmail(email);
@@ -66,53 +69,59 @@ public class Member extends BaseEntity {
     }
 
     public void softDelete() {
-        this.deleted = true;
+        if (this.deletedAt == null) {
+            this.deletedAt = LocalDateTime.now();
+        }
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
     }
 
     private String normalizeAndValidateEmail(String email) {
-        String normalizedEmail = normalizeAndValidateNotBlank(email, "email").toLowerCase(Locale.ROOT);
-        validateMaxLength(normalizedEmail, "email", EMAIL_MAX_LENGTH);
+        String normalizedEmail = normalizeAndValidateNotBlank(email).toLowerCase(Locale.ROOT);
+        validateMaxLength(normalizedEmail, EMAIL_MAX_LENGTH);
         if (!EMAIL_PATTERN.matcher(normalizedEmail).matches()) {
-            throw new IllegalArgumentException("email format is invalid");
+            throw new BusinessException(ErrorCode.MEMBER_EMAIL_INVALID_FORMAT);
         }
         return normalizedEmail;
     }
 
     private String validatePassword(String password) {
-        String validPassword = normalizeAndValidateNotBlank(password, "password");
-        validateMaxLength(validPassword, "password", PASSWORD_MAX_LENGTH);
+        String validPassword = normalizeAndValidateNotBlank(password);
+        validateMaxLength(validPassword, PASSWORD_MAX_LENGTH);
         return validPassword;
     }
 
     private String normalizeAndValidateName(String name) {
-        String normalizedName = normalizeAndValidateNotBlank(name, "name");
-        validateMaxLength(normalizedName, "name", NAME_MAX_LENGTH);
+        String normalizedName = normalizeAndValidateNotBlank(name);
+        validateMaxLength(normalizedName, NAME_MAX_LENGTH);
         return normalizedName;
     }
 
     private MemberRole validateRole(MemberRole role) {
         if (role == null) {
-            throw new IllegalArgumentException("role must not be null");
+            throw new BusinessException(ErrorCode.MEMBER_ROLE_REQUIRED);
         }
         return role;
     }
 
-    private String normalizeAndValidateNotBlank(String value, String fieldName) {
+    private String normalizeAndValidateNotBlank(String value) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " must not be blank");
+            throw new BusinessException(ErrorCode.MEMBER_FIELD_REQUIRED);
         }
         return value.trim();
     }
 
-    private void validateMaxLength(String value, String fieldName, int maxLength) {
+    private void validateMaxLength(String value, int maxLength) {
         if (value.length() > maxLength) {
-            throw new IllegalArgumentException(fieldName + " length must be less than or equal to " + maxLength);
+            throw new BusinessException(ErrorCode.MEMBER_FIELD_LENGTH_EXCEEDED);
         }
     }
 
     private void assertNotDeleted() {
-        if (deleted) {
-            throw new IllegalStateException("deleted member cannot be modified");
+        if (deletedAt != null) {
+            throw new BusinessException(ErrorCode.MEMBER_DELETED);
         }
     }
 
