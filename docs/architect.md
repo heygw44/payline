@@ -10,7 +10,7 @@
 |------|------|
 | **프로젝트명** | 페이라인 (PayLine) |
 | **문서 유형** | 시스템 아키텍처 설계서 |
-| **문서 버전** | v1.3 |
+| **문서 버전** | v1.5 |
 | **최종 수정일** | 2026년 2월 14일 |
 | **기반 문서** | PRD v3.0.1 |
 | **기술 스택** | Java 21 + Spring Boot 4.0.2 + Vue 3 + MySQL 9.x |
@@ -526,7 +526,7 @@ public class Member extends BaseEntity {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String password;               // BCrypt 해시
 
     @Column(nullable = false, length = 20)
@@ -539,7 +539,10 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private boolean deleted = false;       // soft delete
 
-    // 비즈니스 메서드
+    // 비즈니스 메서드 (입력 정규화 + 상태 가드)
+    // - email/name trim, email 소문자 정규화
+    // - email 형식/길이, name/password 길이 검증
+    // - deleted=true 회원은 수정/권한변경 불가
     public void changeRole(MemberRole newRole) { ... }
     public void updateInfo(String name, String encodedPassword) { ... }
     public void softDelete() { this.deleted = true; }
@@ -1252,7 +1255,7 @@ reject():    REQUESTED ---> REJECTED     (전이 조건: rejectionReason 필수)
     |
     +-- JPA Repository (Spring Data JPA)
     |   +-- save, findById, delete
-    |   +-- 메서드 이름 기반 쿼리 (findByEmail, existsByBusinessNumber 등)
+    |   +-- 메서드 이름 기반 쿼리 (findByEmailIgnoreCaseAndDeletedFalse, existsByBusinessNumber 등)
     |
     +-- MyBatis Mapper (XML)
         +-- 동적 검색 쿼리 (<if>, <where>, <foreach>)
@@ -1265,8 +1268,8 @@ reject():    REQUESTED ---> REJECTED     (전이 조건: rejectionReason 필수)
 ```java
 // 각 도메인별 JPA Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
-    Optional<Member> findByEmailAndDeletedFalse(String email);
-    boolean existsByEmail(String email);
+    Optional<Member> findByEmailIgnoreCaseAndDeletedFalse(String email); // 활성 회원 조회
+    boolean existsByEmailIgnoreCase(String email); // 삭제 회원 포함 이메일 중복 검증
     long countByRoleAndDeletedFalse(MemberRole role);
 }
 
@@ -1670,3 +1673,5 @@ src/main/resources/db/migration/
 > | v1.1 | 2026-02-14 | ApiResponse 스니펫을 실제 구현(불변식 검증, 제네릭 error 팩토리) 기준으로 정합화 |
 > | v1.2 | 2026-02-14 | 문서 메타데이터(버전/최종 수정일)와 이력 정합성 보정 |
 > | v1.3 | 2026-02-14 | 코드 기준 전체 정합성 보정: BusinessException concrete화, BaseEntity 2계층 구조, SettleStatus switch expression, 예외 계층 다이어그램 |
+> | v1.4 | 2026-02-14 | Member 리팩토링 반영: 입력 정규화/검증 규칙 설명 보완, Repository 메서드 시그니처(`IgnoreCase + DeletedFalse`) 정합화 |
+> | v1.5 | 2026-02-14 | 이메일 전역 고유 정책 확정 반영: `existsByEmailIgnoreCase`로 정합화(삭제 회원 포함 중복 검증) |

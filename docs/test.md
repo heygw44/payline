@@ -92,7 +92,7 @@
 | TC ID | 테스트 케이스 | 사전 조건 | 입력 | 기대 결과 |
 |-------|-------------|----------|------|----------|
 | MBR-U-01 | 정상 회원가입 | — | SignupRequest (유효) | Member 저장, role=USER |
-| MBR-U-02 | 이메일 중복 가입 | 동일 이메일 존재 | SignupRequest | BusinessException (M002) |
+| MBR-U-02 | 이메일 중복 가입 | 동일 이메일 존재(삭제 회원 포함) | SignupRequest | BusinessException (M002) |
 | MBR-U-03 | 비밀번호 BCrypt 해싱 | — | SignupRequest | 저장된 password ≠ 원문 |
 | MBR-U-04 | 회원 정보 수정 | 회원 존재 | MemberUpdateRequest | name/password 변경 |
 | MBR-U-05 | 권한 변경 (USER→ADMIN) | 대상 회원 존재 | role=ADMIN | role 변경 확인 |
