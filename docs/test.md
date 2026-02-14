@@ -2,16 +2,16 @@
 
 ### 도메인별 테스트 케이스 목록 + 검증 기준
 
-> _PRD v3.0 / 아키텍처 설계서 v1.0 기반_
+> _PRD v3.0.1 / 아키텍처 설계서 v1.2 기반_
 
 ---
 
 | 항목 | 내용 |
 |------|------|
 | **문서 유형** | 테스트 시나리오 명세서 |
-| **문서 버전** | v1.0 |
-| **최종 수정일** | 2026년 2월 12일 |
-| **총 테스트 케이스** | 87개 (단위 52 + 통합 25 + 보안 10) |
+| **문서 버전** | v1.2 |
+| **최종 수정일** | 2026년 2월 14일 |
+| **총 테스트 케이스** | 105개 (단위 66 + 통합 28 + 보안 11) |
 | **커버리지 목표** | Service 계층 80% 이상 |
 | **테스트 프레임워크** | JUnit Jupiter 6.0.2, Mockito 5.20, Spring Boot Test, MockMvc |
 | **기술 스택** | Java 21 + Spring Boot 4.0.2 + Vue 3 |
@@ -445,14 +445,14 @@ Order#5: totalAmount = 33,333.33
 # 전체 테스트 실행
 ./gradlew test
 
-# 특정 도메인 테스트만 실행
-./gradlew test --tests "com.payline.settle.*"
+# 특정 패키지 테스트 실행 (예: 현재 구현된 global 패키지)
+./gradlew test --tests "com.payline.global.*"
 
-# 단위 테스트 클래스 패턴 실행
-./gradlew test --tests "*ServiceTest" --tests "*CalculatorTest" --tests "*StatusTest"
+# 특정 테스트 클래스 실행
+./gradlew test --tests "com.payline.global.common.dto.ApiResponseTest"
 
-# 통합/보안 테스트 클래스 패턴 실행
-./gradlew test --tests "*IntegrationTest" --tests "*SecurityTest"
+# 특정 테스트 메서드 실행
+./gradlew test --tests "com.payline.global.error.GlobalExceptionHandlerTest.shouldHandleBusinessException"
 
 # 커버리지 리포트 생성
 ./gradlew test jacocoTestReport
@@ -523,12 +523,12 @@ src/test/java/com/payline/
 | Member | 8 | 4 | — | 12 |
 | Owner | 7 | 4 | — | 11 |
 | Order | 11 | 3 | — | 14 |
-| Reward | 6 | 2 | — | 8 |
-| Settle | 29 | 9 | — | 38 |
-| Security (횡단) | — | — | 10 | 10 |
-| **합계** | **52** | **25** | **10** | **87** |
+| Reward | 7 | 2 | — | 9 |
+| Settle | 30 | 9 | — | 39 |
+| Security (횡단) | — | — | 11 | 11 |
+| **합계** | **66** | **28** | **11** | **105** |
 
-> Settle 도메인이 전체 테스트의 44%를 차지합니다. 이는 정산 시스템의 핵심 도메인으로서 금액 산출 정확성, 상태 전이 규칙, 데이터 무결성 등 검증할 비즈니스 규칙이 가장 많기 때문입니다.
+> Settle 도메인이 전체 테스트의 약 37%를 차지합니다. 이는 정산 시스템의 핵심 도메인으로서 금액 산출 정확성, 상태 전이 규칙, 데이터 무결성 등 검증할 비즈니스 규칙이 가장 많기 때문입니다.
 
 ---
 
@@ -537,3 +537,5 @@ src/test/java/com/payline/
 > | 버전 | 날짜 | 변경 내용 |
 > |------|------|-----------|
 > | v1.0 | 2026-02-12 | 최초 작성. 87개 테스트 케이스 (단위 52 + 통합 25 + 보안 10) |
+> | v1.1 | 2026-02-14 | 테스트 실행 명령어를 현재 저장소에서 즉시 실행 가능한 형태로 정리 |
+> | v1.2 | 2026-02-14 | 테스트 케이스 통계(총 105개) 및 도메인별 수치 정합성 보정 |
