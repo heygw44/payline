@@ -9,7 +9,7 @@
 | 항목 | 내용 |
 |------|------|
 | **문서 유형** | 테스트 시나리오 명세서 |
-| **문서 버전** | v1.2 |
+| **문서 버전** | v1.3 |
 | **최종 수정일** | 2026년 2월 14일 |
 | **총 테스트 케이스** | 105개 (단위 66 + 통합 28 + 보안 11) |
 | **커버리지 목표** | Service 계층 80% 이상 |
@@ -39,9 +39,9 @@
 
 | 유형 | 도구 | 대상 | 비중 | 목표 |
 |------|------|------|------|------|
-| **단위 테스트** | JUnit Jupiter 6 + Mockito | Service, Domain, Calculator | 60% (52건) | 비즈니스 로직 정확성 |
-| **통합 테스트** | Spring Boot Test + MockMvc | Controller + Security + DB | 29% (25건) | API 동작 + 인증/인가 |
-| **보안 테스트** | Spring Security Test | CSRF, 세션, 권한 | 11% (10건) | 보안 요구사항 충족 |
+| **단위 테스트** | JUnit Jupiter 6 + Mockito | Service, Domain, Calculator | 63% (66건) | 비즈니스 로직 정확성 |
+| **통합 테스트** | Spring Boot Test + MockMvc | Controller + Security + DB | 27% (28건) | API 동작 + 인증/인가 |
+| **보안 테스트** | Spring Security Test | CSRF, 세션, 권한 | 10% (11건) | 보안 요구사항 충족 |
 
 ### 테스트 클래스 네이밍 규칙
 
@@ -92,13 +92,13 @@
 | TC ID | 테스트 케이스 | 사전 조건 | 입력 | 기대 결과 |
 |-------|-------------|----------|------|----------|
 | MBR-U-01 | 정상 회원가입 | — | SignupRequest (유효) | Member 저장, role=USER |
-| MBR-U-02 | 이메일 중복 가입 | 동일 이메일 존재 | SignupRequest | DuplicateException (M002) |
+| MBR-U-02 | 이메일 중복 가입 | 동일 이메일 존재 | SignupRequest | BusinessException (M002) |
 | MBR-U-03 | 비밀번호 BCrypt 해싱 | — | SignupRequest | 저장된 password ≠ 원문 |
 | MBR-U-04 | 회원 정보 수정 | 회원 존재 | MemberUpdateRequest | name/password 변경 |
 | MBR-U-05 | 권한 변경 (USER→ADMIN) | 대상 회원 존재 | role=ADMIN | role 변경 확인 |
 | MBR-U-06 | 마지막 관리자 권한 해제 방지 | ADMIN 1명 | role=USER | BusinessException (M003) |
 | MBR-U-07 | 회원 soft delete | 회원 존재 | memberId | deleted=true |
-| MBR-U-08 | 미존재 회원 조회 | — | 미존재 ID | EntityNotFoundException (M001) |
+| MBR-U-08 | 미존재 회원 조회 | — | 미존재 ID | BusinessException (M001) |
 
 ### 3.2 통합 테스트 — MemberController
 
@@ -118,11 +118,11 @@
 | TC ID | 테스트 케이스 | 사전 조건 | 입력 | 기대 결과 |
 |-------|-------------|----------|------|----------|
 | OWN-U-01 | 정상 업주 등록 | — | OwnerCreateRequest | Owner 저장 |
-| OWN-U-02 | 사업자번호 중복 | 동일 번호 존재 | OwnerCreateRequest | DuplicateException (O002) |
+| OWN-U-02 | 사업자번호 중복 | 동일 번호 존재 | OwnerCreateRequest | BusinessException (O002) |
 | OWN-U-03 | 업주 정보 수정 | 업주 존재 | OwnerUpdateRequest | 필드 변경 확인 |
 | OWN-U-04 | 주문 있는 업주 삭제 | 주문 존재 | ownerId | BusinessException (O003) |
 | OWN-U-05 | 주문 없는 업주 삭제 | 주문 없음 | ownerId | deleted=true |
-| OWN-U-06 | 삭제된 업주 조회 | deleted=true | ownerId | EntityNotFoundException (O001) |
+| OWN-U-06 | 삭제된 업주 조회 | deleted=true | ownerId | BusinessException (O001) |
 | OWN-U-07 | 업주 상세 (통계) | 관련 데이터 존재 | ownerId | 주문수, 금액, 보상액 확인 |
 
 ### 4.2 통합 테스트 — OwnerController
@@ -147,7 +147,7 @@
 | ORD-U-03 | OrderDetail 합계 ≠ totalAmount | — | 합계 불일치 | BusinessException (OR002) |
 | ORD-U-04 | OrderDetail 합계 = totalAmount | — | 합계 일치 | 정상 저장 |
 | ORD-U-05 | 주문 취소 | Order 존재 | status=CANCELLED | 변경 확인 |
-| ORD-U-06 | 미존재 Owner로 주문 | Owner 미존재 | ownerId | EntityNotFoundException |
+| ORD-U-06 | 미존재 Owner로 주문 | Owner 미존재 | ownerId | BusinessException (O001) |
 | ORD-U-07 | BigDecimal 정밀도 | — | 33333.33 | 소수점 정확 저장 |
 
 ### 5.2 단위 테스트 — Order Entity
@@ -155,7 +155,7 @@
 | TC ID | 테스트 케이스 | 입력 | 기대 결과 |
 |-------|-------------|------|----------|
 | ORD-U-08 | validateTotalAmount 성공 | 합계 == totalAmount | 예외 없음 |
-| ORD-U-09 | validateTotalAmount 실패 | 합계 ≠ totalAmount | AmountMismatchException |
+| ORD-U-09 | validateTotalAmount 실패 | 합계 ≠ totalAmount | BusinessException (OR002) |
 | ORD-U-10 | isCompleted (COMPLETED) | COMPLETED | true |
 | ORD-U-11 | isCompleted (RECEIVED) | RECEIVED | false |
 
@@ -181,7 +181,7 @@
 | RWD-U-04 | 정산 포함 보상금 수정 | settled=true | UpdateRequest | BusinessException (R002) |
 | RWD-U-05 | 정산 포함 보상금 삭제 | settled=true | rewardId | BusinessException (R002) |
 | RWD-U-06 | 미정산 보상금 삭제 | settled=false | rewardId | 정상 삭제 |
-| RWD-U-07 | 존재하지 않는 보상금 조회 | — | 미존재 ID | EntityNotFoundException (R001) |
+| RWD-U-07 | 존재하지 않는 보상금 조회 | — | 미존재 ID | BusinessException (R001) |
 
 ### 6.2 통합 테스트 — RewardController
 
@@ -202,10 +202,10 @@
 | STL-U-02 | REQUESTED → APPROVED | REQUESTED | APPROVED | 성공 |
 | STL-U-03 | REQUESTED → REJECTED | REQUESTED | REJECTED | 성공 |
 | STL-U-04 | APPROVED → COMPLETED | APPROVED | COMPLETED | 성공 |
-| STL-U-05 | PENDING → APPROVED (불가) | PENDING | APPROVED | InvalidStateException |
-| STL-U-06 | PENDING → COMPLETED (불가) | PENDING | COMPLETED | InvalidStateException |
-| STL-U-07 | COMPLETED → * (불가) | COMPLETED | REQUESTED | InvalidStateException |
-| STL-U-08 | REJECTED → * (불가) | REJECTED | REQUESTED | InvalidStateException |
+| STL-U-05 | PENDING → APPROVED (불가) | PENDING | APPROVED | BusinessException (S003) |
+| STL-U-06 | PENDING → COMPLETED (불가) | PENDING | COMPLETED | BusinessException (S003) |
+| STL-U-07 | COMPLETED → * (불가) | COMPLETED | REQUESTED | BusinessException (S003) |
+| STL-U-08 | REJECTED → * (불가) | REJECTED | REQUESTED | BusinessException (S003) |
 
 ### 7.2 단위 테스트 — SettlementCalculator
 
@@ -224,9 +224,9 @@
 | TC ID | 테스트 케이스 | 사전 조건 | 입력 | 기대 결과 |
 |-------|-------------|----------|------|----------|
 | STL-U-16 | 정상 지급 생성 | Owner 존재 | SettleCreateRequest | status=PENDING |
-| STL-U-17 | 동일 업주/기간 중복 | 동일 Settle 존재 | SettleCreateRequest | DuplicateException (S002) |
-| STL-U-17a | 존재하지 않는 지급 조회 | — | 미존재 ID | EntityNotFoundException (S001) |
-| STL-U-18 | 존재하지 않는 업주 | Owner 미존재 | ownerId=9999 | EntityNotFoundException (O001) |
+| STL-U-17 | 동일 업주/기간 중복 | 동일 Settle 존재 | SettleCreateRequest | BusinessException (S002) |
+| STL-U-17a | 존재하지 않는 지급 조회 | — | 미존재 ID | BusinessException (S001) |
+| STL-U-18 | 존재하지 않는 업주 | Owner 미존재 | ownerId=9999 | BusinessException (O001) |
 | STL-U-19 | startDate > endDate | — | 시작일 > 종료일 | BusinessException |
 | STL-U-20 | 생성 시 Reward settled 플래그 변경 | 미정산 보상 3건 | SettleCreateRequest | 3건 모두 settled=true |
 | STL-U-21 | 지급 요청 (PENDING→REQUESTED) | status=PENDING | settleId | status=REQUESTED |
@@ -234,7 +234,7 @@
 | STL-U-23 | 지급 완료 (APPROVED→COMPLETED) | status=APPROVED | settleId | status=COMPLETED |
 | STL-U-24 | 지급 반려 (REQUESTED→REJECTED) | status=REQUESTED | settleId + reason | status=REJECTED, rejectionReason 저장 |
 | STL-U-25 | 반려 시 사유 누락 | status=REQUESTED | reason=null | BusinessException |
-| STL-U-26 | 잘못된 상태 전이 (PENDING→APPROVED) | status=PENDING | approve() 호출 | InvalidStateException (S003) |
+| STL-U-26 | 잘못된 상태 전이 (PENDING→APPROVED) | status=PENDING | approve() 호출 | BusinessException (S003) (S003) |
 | STL-U-27 | PENDING 상태 삭제 성공 | status=PENDING | settleId | 정상 삭제 |
 | STL-U-28 | REQUESTED 상태 삭제 시도 | status=REQUESTED | settleId | BusinessException (S004) |
 | STL-U-29 | COMPLETED 상태 삭제 시도 | status=COMPLETED | settleId | BusinessException (S004) |
@@ -464,6 +464,16 @@ Order#5: totalAmount = 33,333.33
 ```
 src/test/java/com/payline/
 +-- global/
+|   +-- config/
+|   |   +-- JpaAuditingConfigTest.java
+|   +-- common/
+|   |   +-- dto/
+|   |       +-- ApiResponseTest.java
+|   |       +-- PageResponseTest.java
+|   +-- error/
+|   |   +-- BusinessExceptionTest.java
+|   |   +-- ErrorCodeTest.java
+|   |   +-- GlobalExceptionHandlerTest.java
 |   +-- auth/
 |       +-- CustomUserDetailsServiceTest.java
 +-- member/
@@ -539,3 +549,4 @@ src/test/java/com/payline/
 > | v1.0 | 2026-02-12 | 최초 작성. 87개 테스트 케이스 (단위 52 + 통합 25 + 보안 10) |
 > | v1.1 | 2026-02-14 | 테스트 실행 명령어를 현재 저장소에서 즉시 실행 가능한 형태로 정리 |
 > | v1.2 | 2026-02-14 | 테스트 케이스 통계(총 105개) 및 도메인별 수치 정합성 보정 |
+> | v1.3 | 2026-02-14 | 테스트 피라미드 비중 수치 정합화, global/ 기구현 테스트 클래스 디렉토리 구조 반영 |

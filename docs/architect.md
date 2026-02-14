@@ -10,7 +10,7 @@
 |------|------|
 | **프로젝트명** | 페이라인 (PayLine) |
 | **문서 유형** | 시스템 아키텍처 설계서 |
-| **문서 버전** | v1.2 |
+| **문서 버전** | v1.3 |
 | **최종 수정일** | 2026년 2월 14일 |
 | **기반 문서** | PRD v3.0.1 |
 | **기술 스택** | Java 21 + Spring Boot 4.0.2 + Vue 3 + MySQL 9.x |
@@ -256,11 +256,11 @@ src/main/java/com/payline/
 |
 +-- global/                                  # ── 전역 공통 ──
 |   +-- config/
-|   |   +-- SecurityConfig.java              # Spring Security 설정
-|   |   +-- WebMvcConfig.java                # CORS, 인터셉터 설정
-|   |   +-- MyBatisConfig.java               # MyBatis 설정
-|   |   +-- JpaAuditingConfig.java           # JPA Auditing 활성화
-|   |   +-- SwaggerConfig.java               # SpringDoc OpenAPI 설정
+|   |   +-- SecurityConfig.java              # Spring Security 설정 (향후 구현)
+|   |   +-- WebMvcConfig.java                # CORS, 인터셉터 설정 (향후 구현)
+|   |   +-- MyBatisConfig.java               # MyBatis 설정 (향후 구현)
+|   |   +-- JpaAuditingConfig.java           # JPA Auditing 활성화 ✅
+|   |   +-- SwaggerConfig.java               # SpringDoc OpenAPI 설정 (향후 구현)
 |   |
 |   +-- common/
 |   |   +-- dto/
@@ -275,11 +275,7 @@ src/main/java/com/payline/
 |   +-- error/
 |   |   +-- GlobalExceptionHandler.java      # @RestControllerAdvice
 |   |   +-- ErrorCode.java                   # 에러 코드 Enum
-|   |   +-- BusinessException.java           # 비즈니스 예외 (abstract)
-|   |   +-- EntityNotFoundException.java     # 엔티티 미발견
-|   |   +-- DuplicateException.java          # 중복 데이터
-|   |   +-- InvalidStateException.java       # 잘못된 상태 전이
-|   |   +-- ErrorResponse.java               # 에러 응답 DTO (record)
+|   |   +-- BusinessException.java           # 비즈니스 예외 (concrete, ErrorCode 래핑)
 |   |
 |   +-- auth/
 |       +-- CustomUserDetailsService.java    # UserDetailsService 구현
@@ -764,41 +760,44 @@ public enum RewardReason  { DELIVERY_ACCIDENT, SYSTEM_ERROR, PROMOTION, ETC }
 public enum SettleStatus {
     PENDING, REQUESTED, APPROVED, COMPLETED, REJECTED;
 
-    private static final Map<SettleStatus, Set<SettleStatus>> TRANSITIONS = Map.of(
-        PENDING,   Set.of(REQUESTED),
-        REQUESTED, Set.of(APPROVED, REJECTED),
-        APPROVED,  Set.of(COMPLETED),
-        COMPLETED, Set.of(),
-        REJECTED,  Set.of()
-    );
-
-    public SettleStatus transitionTo(SettleStatus target) {
-        if (!TRANSITIONS.get(this).contains(target)) {
-            throw new InvalidStateException(
-                "상태 전이 불가: %s → %s".formatted(this, target));
-        }
-        return target;
+    public boolean canTransitionTo(SettleStatus target) {
+        return switch (this) {
+            case PENDING -> target == REQUESTED;
+            case REQUESTED -> target == APPROVED || target == REJECTED;
+            case APPROVED -> target == COMPLETED;
+            case COMPLETED, REJECTED -> false;
+        };
     }
 }
 ```
 
 ### 3.5 BaseEntity 설계
 
+2계층 구조: `BaseTimeEntity`(시간 필드) → `BaseEntity`(작성자/수정자 추가)
+
 ```java
+// 시간 필드만 포함 (createdAt, updatedAt)
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-@Getter                                      // Lombok
-public abstract class BaseEntity {
+@Getter
+public abstract class BaseTimeEntity {
 
     @CreatedDate
-    @Column(updatable = false)
+    @Column(updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
+}
+
+// 작성자/수정자 포함 (BaseTimeEntity 확장)
+@MappedSuperclass
+@Getter
+public abstract class BaseEntity extends BaseTimeEntity {
 
     @CreatedBy
-    @Column(updatable = false, length = 100)
+    @Column(updatable = false, length = 100, nullable = false)
     private String createdBy;
 
     @LastModifiedBy
@@ -1216,7 +1215,7 @@ approve():   REQUESTED ---> APPROVED     (전이 조건: 없음)
 complete():  APPROVED  ---> COMPLETED    (전이 조건: 없음)
 reject():    REQUESTED ---> REJECTED     (전이 조건: rejectionReason 필수)
 
-[불가능한 전이 시 InvalidStateException 발생]
+[불가능한 전이 시 BusinessException(INVALID_STATE_TRANSITION) 발생]
 - PENDING   ---> APPROVED   (요청을 건너뛸 수 없음)
 - PENDING   ---> COMPLETED  (완료로 직접 전이 불가)
 - COMPLETED ---> *           (최종 상태)
@@ -1227,11 +1226,11 @@ reject():    REQUESTED ---> REJECTED     (전이 조건: rejectionReason 필수)
 
 | 검증 항목 | 검증 시점 | 검증 방법 | 실패 시 |
 |-----------|----------|-----------|---------|
-| OrderDetail 합계 = Order totalAmount | 주문 생성/수정 시 | `Order.validateTotalAmount()` | `AmountMismatchException` |
+| OrderDetail 합계 = Order totalAmount | 주문 생성/수정 시 | `Order.validateTotalAmount()` | `BusinessException (OR002)` |
 | 금액 필드 BigDecimal 사용 | 컴파일 타임 | 필드 타입 강제 | 컴파일 에러 |
-| 동일 업주/기간 중복 정산 | 지급 생성 시 | `SettleRepository` 조회 | `DuplicateSettleException` |
-| 정산 포함 보상금 수정 방지 | 보상금 수정/삭제 시 | `Reward.isModifiable()` | `RewardAlreadySettledException` |
-| 삭제 가능 상태 확인 | 지급 삭제 시 | `Settle.isDeletable()` | `SettleNotDeletableException` |
+| 동일 업주/기간 중복 정산 | 지급 생성 시 | `SettleRepository` 조회 | `BusinessException (S002)` |
+| 정산 포함 보상금 수정 방지 | 보상금 수정/삭제 시 | `Reward.isModifiable()` | `BusinessException (R002)` |
+| 삭제 가능 상태 확인 | 지급 삭제 시 | `Settle.isDeletable()` | `BusinessException (S004)` |
 
 ### 6.4 트랜잭션 경계 설계
 
@@ -1441,10 +1440,9 @@ client.interceptors.response.use(
     v
 [GlobalExceptionHandler (@RestControllerAdvice)]
     |
-    +-- BusinessException 계열
-    |   +-- EntityNotFoundException     --> 404
-    |   +-- DuplicateException          --> 409
-    |   +-- InvalidStateException       --> 400
+    +-- BusinessException (ErrorCode 래핑)
+    |       ErrorCode.httpStatus에 따라 HTTP 상태코드 매핑
+    |       예: OWNER_NOT_FOUND(404), DUPLICATE_EMAIL(409), INVALID_STATE_TRANSITION(400)
     |
     +-- MethodArgumentNotValidException --> 400 (Bean Validation)
     +-- AccessDeniedException           --> 403
@@ -1671,3 +1669,4 @@ src/main/resources/db/migration/
 > | v1.0 | 2026-02-12 | 최초 작성. PRD v3.0 기반 전체 아키텍처 설계 |
 > | v1.1 | 2026-02-14 | ApiResponse 스니펫을 실제 구현(불변식 검증, 제네릭 error 팩토리) 기준으로 정합화 |
 > | v1.2 | 2026-02-14 | 문서 메타데이터(버전/최종 수정일)와 이력 정합성 보정 |
+> | v1.3 | 2026-02-14 | 코드 기준 전체 정합성 보정: BusinessException concrete화, BaseEntity 2계층 구조, SettleStatus switch expression, 예외 계층 다이어그램 |

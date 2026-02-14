@@ -462,13 +462,13 @@ settlementAmount  = (totalOrderAmount - totalFeeAmount) + totalRewardAmount
 
 ```json
 // 성공
-{ "success": true, "data": { }, "message": null }
+{ "success": true, "data": { }, "message": null, "errorCode": null }
 
 // 페이징
-{ "success": true, "data": { "content": [], "page": 0, "size": 20, "totalElements": 150, "totalPages": 8 } }
+{ "success": true, "data": { "content": [], "page": 0, "size": 20, "totalElements": 150, "totalPages": 8 }, "message": null, "errorCode": null }
 
 // 에러
-{ "success": false, "data": null, "message": "존재하지 않는 업주입니다.", "errorCode": "OWNER_NOT_FOUND" }
+{ "success": false, "data": null, "message": "존재하지 않는 업주입니다.", "errorCode": "O001" }
 ```
 
 #### Auditing 필드

@@ -1,17 +1,23 @@
 package com.payline.global.error;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 class GlobalExceptionHandlerTest {
@@ -56,6 +62,18 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("MethodArgumentNotValidException 발생 시 400 응답과 첫 번째 필드 에러 메시지를 반환한다")
+    void shouldHandleValidationException() throws Exception {
+        mockMvc.perform(post("/test/validation")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.errorCode").value("C001"))
+                .andExpect(jsonPath("$.message").value("이름은 필수입니다."));
+    }
+
+    @Test
     @DisplayName("예상치 못한 Exception 발생 시 500 응답을 반환한다")
     void shouldHandleUnexpectedException() throws Exception {
         mockMvc.perform(get("/test/unexpected-exception"))
@@ -72,6 +90,10 @@ class GlobalExceptionHandlerTest {
             throw new BusinessException(ErrorCode.OWNER_NOT_FOUND);
         }
 
+        @PostMapping("/test/validation")
+        public void validation(@Valid @RequestBody TestRequest request) {
+        }
+
         @GetMapping("/test/access-denied")
         public void accessDenied() {
             throw new AccessDeniedException("접근 거부");
@@ -86,5 +108,8 @@ class GlobalExceptionHandlerTest {
         public void unexpectedException() {
             throw new RuntimeException("예상치 못한 오류");
         }
+    }
+
+    record TestRequest(@NotBlank(message = "이름은 필수입니다.") String name) {
     }
 }
